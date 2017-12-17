@@ -14,13 +14,16 @@ class MyComponent extends React.Component {
     componentDidMount(){
         // this is an "echo" websocket service for testing pusposes
         this.connection = new WebSocket('wss://real.okex.com:10440/websocket/okexapi');
-        // listen to onmessage event
         this.connection.onmessage = evt => {
+            // listen to onmessage event
+            console.log(evt.data);
+            if(evt.data[0].data) {
+                alert(evt.data[0].data.last)
+            }
             // add the new message to state
             this.setState({
                 messages : this.state.messages.concat([ evt.data ])
-            })
-            console.log(evt)
+            });
         };
         // var senddata = {'event':'addChannel','channel':'ok_sub_spot_usd_btc_ticker','binary','1'}
         this.connection.onopen = () => {
