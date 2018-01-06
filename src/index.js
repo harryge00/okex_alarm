@@ -16,11 +16,24 @@ class MyComponent extends React.Component {
     }
 
     handleChange(event) {
-        console.log("handleChange");
+        this.setState({
+            lowBTCvalue: event.target.lowBTCvalue,
+            highBTCvalue: event.target.highBTCvalue
+        });
     }
 
     handleSubmit(event) {
-        console.log("handleSubmit");
+        console.log("handleSubmit", this.state.lowBTCvalue, this.state.highBTCvalue);
+    }
+
+    checkPrice(last) {
+        console.log(last, this.state.highBTCvalue, this.state.lowBTCvalue);
+        if(last > this.state.highBTCvalue) {
+            notifyMe("High price alert " + last);
+        }
+        if(last < this.state.lowBTCvalue) {
+            notifyMe("Low price alert" + last);
+        }
     }
 
     componentDidMount(){
@@ -30,10 +43,8 @@ class MyComponent extends React.Component {
             // listen to onmessage event
             var obj = JSON.parse(evt.data);
             if(obj[0]) {
-                console.log(obj[0].data.last);
-                if(obj[0].data.last > 15100) {
-                    notifyMe(JSON.stringify(obj[0].data));
-                }
+                this.checkPrice(obj[0].data.last);
+
             }
             // add the new message to state
             this.setState({
@@ -59,9 +70,9 @@ class MyComponent extends React.Component {
             <form onSubmit={this.handleSubmit}>
                 <label>
                     lowBTCvalue:
-                    <input type="text" value={this.state.lowBTCvalue} onChange={this.handleChange} />
+                    <input type="number" value={this.state.lowBTCvalue} onChange={this.handleChange} />
                     highBTCvalue:
-                    <input type="text" value={this.state.highBTCvalue} onChange={this.handleChange} />
+                    <input type="number" value={this.state.highBTCvalue} onChange={this.handleChange} />
                 </label>
                 <input type="submit" value="Submit" />
             </form>
