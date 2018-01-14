@@ -7,18 +7,24 @@ class MyComponent extends React.Component {
         this.state = {
             lowBTCvalue: 0,
             highBTCvalue: 99999,
+            btcRecords:{},
+            btcAlarmRange: 200,
             error: null,
             isLoaded: false,
             messages: []
         };
-        this.handleChange = this.handleChange.bind(this);
+        this.handleLowBTCChange = this.handleLowBTCChange.bind(this);
+        this.handleHighBTCChange = this.handleHighBTCChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
-
-    handleChange(event) {
+    handleLowBTCChange(event) {
         this.setState({
-            lowBTCvalue: event.target.lowBTCvalue,
-            highBTCvalue: event.target.highBTCvalue
+            lowBTCvalue: event.target.value
+        });
+    }
+    handleHighBTCChange(event) {
+        this.setState({
+            highBTCvalue: event.target.value
         });
     }
 
@@ -27,13 +33,34 @@ class MyComponent extends React.Component {
     }
 
     checkPrice(last) {
-        console.log(last, this.state.highBTCvalue, this.state.lowBTCvalue);
-        if(last > this.state.highBTCvalue) {
+        var date = new Date();
+        var btcRecords = this.state.btcRecords;
+        var curMin = date.getMinutes();
+        btcRecords[curMin] = last;
+        this.setState({
+            btcRecords: btcRecords
+        });
+        var lastmin = (60 + curMin - 3) % 60;
+        if( btcRecords[lastmin]) {
+            if(last - btcRecords[lastmin] > 200 ) {
+                notifyMe("Rising from " +  btcRecords[lastmin] + " to " + last);
+            } else if(last - btcRecords[lastmin] < -200) {
+                notifyMe("Falling from " +  btcRecords[lastmin] + " to " + last);
+            }
+        }
+
+        var diff1 = last - this.state.highBTCvalue;
+        if(diff1 > 0) {
+            console.log("high ", last, this.state.highBTCvalue, this.state.lowBTCvalue);
             notifyMe("High price alert " + last);
         }
-        if(last < this.state.lowBTCvalue) {
-            notifyMe("Low price alert" + last);
+        var diff2 = this.state.lowBTCvalue - last;
+        console.log(diff1, diff2);
+        if(diff2 > 0) {
+            console.log("low ", last, this.state.highBTCvalue, this.state.lowBTCvalue);
+            notifyMe("Low price alert "+ last);
         }
+        console.log(this.state.btcRecords);
     }
 
     componentDidMount(){
@@ -44,7 +71,6 @@ class MyComponent extends React.Component {
             var obj = JSON.parse(evt.data);
             if(obj[0]) {
                 this.checkPrice(obj[0].data.last);
-
             }
             // add the new message to state
             this.setState({
@@ -70,9 +96,9 @@ class MyComponent extends React.Component {
             <form onSubmit={this.handleSubmit}>
                 <label>
                     lowBTCvalue:
-                    <input type="number" value={this.state.lowBTCvalue} onChange={this.handleChange} />
+                    <input type="number" value={this.state.lowBTCvalue} onChange={this.handleLowBTCChange} />
                     highBTCvalue:
-                    <input type="number" value={this.state.highBTCvalue} onChange={this.handleChange} />
+                    <input type="number" value={this.state.highBTCvalue} onChange={this.handleHighBTCChange} />
                 </label>
                 <input type="submit" value="Submit" />
             </form>
